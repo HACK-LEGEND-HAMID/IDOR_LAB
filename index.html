@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IDOR Lab</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="icon" type="image/png" href="images/filra2.png" sizes="100x100">
+</head>
+<body>
+
+<h2 class="sr-only"></h2>
+
+<div class="app">
+  <div class="topbar">
+    <div class="logo">IDOR<span>LAB</span></div>
+    <input class="url-bar" id="url-display" value="https://vulnapp.lab/profile/1001" readonly/>
+    <button class="btn-go" onclick="sendCurrentRequest()">SEND</button>
+  </div>
+
+  <div class="mob-toggle" onclick="toggleSidebar(this)">
+    <span class="mob-arrow" id="mob-arr">&#9654;</span> MODULES (28 vulnerabilities)
+  </div>
+
+  <div class="body">
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">// VULN LIST</div>
+        <div class="sidebar-sub">28 IDOR techniques</div>
+      </div>
+
+      <div class="nav-group lv1">
+        <div class="nav-label">Level 1 — Beginner</div>
+        <div class="nav-item active" onclick="showPanel('url-path',this,'lv1')">URL Path<span class="nav-num">#1</span></div>
+        <div class="nav-item" onclick="showPanel('query-string',this,'lv2')">Query String<span class="nav-num">#2</span></div>
+        <div class="nav-item" onclick="showPanel('sequential',this,'lv1')">Sequential IDs<span class="nav-num">#3</span></div>
+        <div class="nav-item" onclick="showPanel('incremental',this,'lv1')">Incremental Nums<span class="nav-num">#4</span></div>
+      </div>
+      <div class="nav-group lv2">
+        <div class="nav-label">Level 2 — Intermediate</div>
+        <div class="nav-item" onclick="showPanel('post-body',this,'lv2')">POST Body<span class="nav-num">#5</span></div>
+        <div class="nav-item" onclick="showPanel('json-body',this,'lv2')">JSON Body<span class="nav-num">#6</span></div>
+        <div class="nav-item" onclick="showPanel('base64',this,'lv2')">Base64 Encoded<span class="nav-num">#7</span></div>
+        <div class="nav-item" onclick="showPanel('hidden-fields',this,'lv2')">Hidden Fields<span class="nav-num">#8</span></div>
+      </div>
+      <div class="nav-group lv3">
+        <div class="nav-label">Level 3 — Advanced</div>
+        <div class="nav-item" onclick="showPanel('custom-headers',this,'lv3')">Custom Headers<span class="nav-num">#9</span></div>
+        <div class="nav-item" onclick="showPanel('cookies',this,'lv3')">Cookies<span class="nav-num">#10</span></div>
+        <div class="nav-item" onclick="showPanel('jwt',this,'lv3')">JWT Payload<span class="nav-num">#11</span></div>
+        <div class="nav-item" onclick="showPanel('oauth',this,'lv3')">OAuth Tokens<span class="nav-num">#12</span></div>
+        <div class="nav-item" onclick="showPanel('referer',this,'lv3')">Referer Header<span class="nav-num">#13</span></div>
+        <div class="nav-item" onclick="showPanel('graphql',this,'lv3')">GraphQL<span class="nav-num">#14</span></div>
+        <div class="nav-item" onclick="showPanel('websocket',this,'lv3')">WebSocket<span class="nav-num">#15</span></div>
+      </div>
+      <div class="nav-group lv4">
+        <div class="nav-label">Level 4 — Expert</div>
+        <div class="nav-item" onclick="showPanel('uuid',this,'lv4')">UUID/GUID<span class="nav-num">#16</span></div>
+        <div class="nav-item" onclick="showPanel('filenames',this,'lv4')">File Names<span class="nav-num">#17</span></div>
+        <div class="nav-item" onclick="showPanel('api-enum',this,'lv4')">API Enumeration<span class="nav-num">#18</span></div>
+        <div class="nav-item" onclick="showPanel('bulk-ops',this,'lv4')">Bulk Operations<span class="nav-num">#19</span></div>
+        <div class="nav-item" onclick="showPanel('nested-json',this,'lv4')">Nested JSON<span class="nav-num">#20</span></div>
+        <div class="nav-item" onclick="showPanel('array-params',this,'lv4')">Array Params<span class="nav-num">#21</span></div>
+        <div class="nav-item" onclick="showPanel('admin-panel',this,'lv4')">Admin Panel IDs<span class="nav-num">#22</span></div>
+        <div class="nav-item" onclick="showPanel('api-keys',this,'lv4')">API Keys<span class="nav-num">#23</span></div>
+        <div class="nav-item" onclick="showPanel('password-reset',this,'lv4')">Reset Tokens<span class="nav-num">#24</span></div>
+        <div class="nav-item" onclick="showPanel('invoices',this,'lv4')">Invoice URLs<span class="nav-num">#25</span></div>
+        <div class="nav-item" onclick="showPanel('messages',this,'lv4')">Message IDs<span class="nav-num">#26</span></div>
+        <div class="nav-item" onclick="showPanel('roles',this,'lv4')">Role IDs<span class="nav-num">#27</span></div>
+        <div class="nav-item" onclick="showPanel('hashed-ids',this,'lv4')">Hashed IDs<span class="nav-num">#28</span></div>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="content" id="content">
+
+        <div class="panel active" id="panel-url-path">
+          <div class="ph">
+            <div class="badge b1">#1 LEVEL 1 — BEGINNER</div>
+            <div class="pt">URL Path IDOR — /profile/{id}</div>
+            <div class="pd">Server fetches user data by the numeric ID in the URL path with no ownership check.</div>
+          </div>
+          <div class="hint">Logged in as: alice (ID: 1001) — Change the ID to access other profiles</div>
+          <div class="card">
+            <div class="card-title">// REQUEST BUILDER</div>
+            <div class="field-row"><span class="field-label">METHOD</span><span class="tag tp">GET</span></div>
+            <div class="field-row"><span class="field-label">PATH</span><span style="color:var(--text3);font-size:11px">/profile/</span><input class="field-input" id="urlpath-id" value="1001" style="width:80px;flex:none" oninput="setURL('https://vulnapp.lab/profile/'+this.value)"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doURLPath()">SEND</button>
+              <button class="btn btn-w" onclick="setV('urlpath-id','1002');setURL('https://vulnapp.lab/profile/1002');doURLPath()">Try 1002</button>
+              <button class="btn btn-w" onclick="setV('urlpath-id','1003');setURL('https://vulnapp.lab/profile/1003');doURLPath()">Try 1003</button>
+              <button class="btn btn-x" onclick="setV('urlpath-id','1');setURL('https://vulnapp.lab/profile/1');doURLPath()">Try 1 (root)</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-urlpath">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-query-string">
+          <div class="ph">
+            <div class="badge b1">#2 LEVEL 1 — BEGINNER</div>
+            <div class="pt">Query String IDOR — ?user_id=</div>
+            <div class="pd">User ID passed as a query parameter. No server-side ownership verification.</div>
+          </div>
+          <div class="hint">Your account: ?user_id=1001 — Modify the parameter</div>
+          <div class="card">
+            <div class="field-row"><span class="field-label">user_id</span><input class="field-input" id="qs-id" value="1001" oninput="setURL('https://vulnapp.lab/settings?user_id='+this.value)"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doQueryString()">SEND</button>
+              <button class="btn btn-x" onclick="setV('qs-id','1002');doQueryString()">Try 1002</button>
+              <button class="btn btn-x" onclick="setV('qs-id','9999');doQueryString()">Try 9999</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-qs">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-sequential">
+          <div class="ph">
+            <div class="badge b1">#3 LEVEL 1 — BEGINNER</div>
+            <div class="pt">Sequential Order IDs — ORD-001, ORD-002...</div>
+            <div class="pd">Predictable order ID pattern. Trivially enumerable across all users.</div>
+          </div>
+          <div class="card">
+            <div class="field-row"><span class="field-label">ORDER ID</span><span style="color:var(--text3);font-size:11px">ORD-</span><input class="field-input" id="seq-id" value="001" style="width:60px;flex:none" oninput="setURL('https://vulnapp.lab/orders/ORD-'+this.value)"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doSequential()">SEND</button>
+              <button class="btn btn-w" onclick="setV('seq-id','002');doSequential()">ORD-002</button>
+              <button class="btn btn-x" onclick="setV('seq-id','100');doSequential()">ORD-100</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-seq">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-incremental">
+          <div class="ph">
+            <div class="badge b1">#4 LEVEL 1 — BEGINNER</div>
+            <div class="pt">Incremental Numbers — /docs/1, /docs/2...</div>
+            <div class="pd">Auto-increment IDs. Every document is reachable by any user.</div>
+          </div>
+          <div class="card">
+            <div class="field-row"><span class="field-label">DOC ID</span><input class="field-input" id="incr-id" value="1" type="number" oninput="setURL('https://vulnapp.lab/docs/'+this.value)" style="width:80px;flex:none"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doIncremental()">SEND</button>
+              <button class="btn btn-x" onclick="setV('incr-id','3');doIncremental()">Doc 3</button>
+              <button class="btn btn-x" onclick="setV('incr-id','4');doIncremental()">Doc 4 (admin)</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-incr">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-post-body">
+          <div class="ph">
+            <div class="badge b2">#5 LEVEL 2 — INTERMEDIATE</div>
+            <div class="pt">POST Body IDOR — user_id in form data</div>
+            <div class="pd">Server trusts user_id in POST body to decide which account to modify.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">// POST BODY (form-encoded)</div>
+            <div class="field-row"><span class="field-label">user_id</span><input class="field-input" id="post-uid" value="1001"/></div>
+            <div class="field-row"><span class="field-label">email</span><input class="field-input" id="post-email" value="alice@vulnapp.lab"/></div>
+            <div class="field-row"><span class="field-label">phone</span><input class="field-input" id="post-phone" value="555-0101"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doPostBody()">SEND POST</button>
+              <button class="btn btn-x" onclick="setV('post-uid','1002');setV('post-email','pwned@attacker.com');doPostBody()">Exploit 1002</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-post">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-json-body">
+          <div class="ph">
+            <div class="badge b2">#6 LEVEL 2 — INTERMEDIATE</div>
+            <div class="pt">JSON Body IDOR — {"user_id": 123}</div>
+            <div class="pd">JSON body contains the user identity. Server blindly trusts client-supplied ID.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">// JSON REQUEST BODY</div>
+            <textarea class="field-input" id="json-body" rows="5" style="width:100%">{
+  "user_id": 1001,
+  "amount": 100,
+  "to_account": "BOB"
+}</textarea>
+            <div class="field-row" style="margin-top:8px">
+              <button class="btn btn-p" onclick="doJSON()">SEND JSON</button>
+              <button class="btn btn-x" onclick="document.getElementById('json-body').value='{\\n  \"user_id\": 1002,\\n  \"amount\": 9999,\\n  \"to_account\": \"ATTACKER\"\\n}';doJSON()">Exploit</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-json">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-base64">
+          <div class="ph">
+            <div class="badge b2">#7 LEVEL 2 INTERMEDIATE</div>
+            <div class="pt">Base64 Encoded IDOR — /user/MTAwMQ==</div>
+            <div class="pd">ID is Base64 encoded — looks cryptic but is trivially decodable by anyone.</div>
+          </div>
+          <div class="card">
+            <div class="field-row"><span class="field-label">USER ID</span><input class="field-input" id="b64-raw" value="1001" oninput="updateB64()"/></div>
+            <div class="field-row"><span class="field-label">ENCODED</span><input class="field-input" id="b64-enc" value="MTAwMQ==" readonly style="color:var(--c5)"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doBase64()">SEND</button>
+              <button class="btn btn-w" onclick="setV('b64-raw','1');updateB64()">Decode 1</button>
+              <button class="btn btn-x" onclick="setV('b64-raw','admin');updateB64();doBase64()">Try "admin"</button>
+            </div>
+          </div>
+          <div class="resp-label">decoded + response</div>
+          <div class="resp-box" id="resp-b64">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-hidden-fields">
+          <div class="ph">
+            <div class="badge b2">#8 LEVEL 2 — INTERMEDIATE</div>
+            <div class="pt">Hidden Form Field IDOR</div>
+            <div class="pd">Hidden &lt;input&gt; carries user_id. Not visible in browser, but fully editable via devtools.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">// HTML FORM (simulated)</div>
+            <div style="background:var(--bg4);padding:8px 10px;border-radius:4px;margin-bottom:10px;font-size:10px;color:var(--text3)">
+              &lt;input type="hidden" name="user_id" value="<input id="hf-uid" value="1001" style="width:55px;background:#E24B4A22;color:#F09595;border:1px solid #E24B4A44;border-radius:3px;font-size:10px;padding:1px 4px;font-family:var(--mono)">"&gt;
+            </div>
+            <div class="field-row"><span class="field-label">STREET</span><input class="field-input" id="hf-street" value="123 Main St"/></div>
+            <div class="field-row"><span class="field-label">CITY</span><input class="field-input" id="hf-city" value="Lahore"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doHiddenField()">SUBMIT</button>
+              <button class="btn btn-x" onclick="document.getElementById('hf-uid').value='1002';doHiddenField()">Modify Hidden</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-hf">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-custom-headers">
+          <div class="ph">
+            <div class="badge b3">#9 LEVEL 3 — ADVANCED</div>
+            <div class="pt">Custom HTTP Header — X-User-ID: 123</div>
+            <div class="pd">Server trusts X-User-ID header sent by client for authorization decisions.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">// HTTP HEADERS</div>
+            <div class="field-row"><span class="field-label">Authorization</span><input class="field-input" value="Bearer eyJhbGc..." readonly style="color:var(--text3)"/></div>
+            <div class="field-row"><span class="field-label">X-User-ID</span><input class="field-input" id="hdr-uid" value="1001"/></div>
+            <div class="field-row"><span class="field-label">X-Forwarded</span><input class="field-input" id="hdr-xff" value="127.0.0.1"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doCustomHeader()">SEND</button>
+              <button class="btn btn-x" onclick="setV('hdr-uid','0');doCustomHeader()">X-User-ID: 0</button>
+              <button class="btn btn-x" onclick="setV('hdr-uid','admin');doCustomHeader()">X-User-ID: admin</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-hdr">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-cookies">
+          <div class="ph">
+            <div class="badge b3">#10 LEVEL 3 — ADVANCED</div>
+            <div class="pt">Cookie IDOR — user_id in unsigned cookie</div>
+            <div class="pd">user_id stored in plain cookie. No signing, no HttpOnly. Freely editable.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">// BROWSER COOKIES</div>
+            <div class="field-row"><span class="field-label">session_id</span><input class="field-input" value="a3f9b2c1d..." readonly style="color:var(--text3)"/></div>
+            <div class="field-row"><span class="field-label">user_id</span><input class="field-input" id="ck-uid" value="1001"/></div>
+            <div class="field-row"><span class="field-label">role</span><input class="field-input" id="ck-role" value="user"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doCookie()">SEND</button>
+              <button class="btn btn-x" onclick="setV('ck-uid','9999');setV('ck-role','superadmin');doCookie()">Escalate Role</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-ck">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-jwt">
+          <div class="ph">
+            <div class="badge b3">#11 LEVEL 3 — ADVANCED</div>
+            <div class="pt">JWT Payload Manipulation — alg:none</div>
+            <div class="pd">Server decodes JWT but doesn't verify signature when alg=none.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">// JWT TOKEN PARTS</div>
+            <div style="margin-bottom:8px;line-height:2">
+              <span class="tag tp">HEADER</span>
+              <span class="tag tw">PAYLOAD</span>
+              <span class="tag ts">SIGNATURE</span>
+            </div>
+            <div class="field-row"><span class="field-label">sub</span><input class="field-input" id="jwt-sub" value="alice_1001"/></div>
+            <div class="field-row"><span class="field-label">role</span><input class="field-input" id="jwt-role" value="user"/></div>
+            <div class="field-row"><span class="field-label">alg</span><input class="field-input" id="jwt-alg" value="HS256"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doJWT()">SEND JWT</button>
+              <button class="btn btn-x" onclick="setV('jwt-sub','admin');setV('jwt-role','superadmin');setV('jwt-alg','none');doJWT()">alg:none EXPLOIT</button>
+            </div>
+          </div>
+          <div class="resp-label">decoded + response</div>
+          <div class="resp-box" id="resp-jwt">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-oauth">
+          <div class="ph">
+            <div class="badge b3">#12 LEVEL 3 — ADVANCED</div>
+            <div class="pt">OAuth Token — embedded user_id</div>
+            <div class="pd">Access token encodes user_id in plaintext. Server extracts without verifying binding.</div>
+          </div>
+          <div class="card">
+            <div class="field-row"><span class="field-label">access_token</span><input class="field-input" id="oauth-token" value="tok_1001_rw_profile" oninput="setURL('https://vulnapp.lab/api/me?access_token='+this.value)"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doOAuth()">SEND</button>
+              <button class="btn btn-x" onclick="setV('oauth-token','tok_1002_rw_profile');doOAuth()">Modify tok</button>
+              <button class="btn btn-x" onclick="setV('oauth-token','tok_admin_rw_all');doOAuth()">Admin tok</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-oauth">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-referer">
+          <div class="ph">
+            <div class="badge b3">#13 LEVEL 3 ADVANCED</div>
+            <div class="pt">Referer Header — auth bypass</div>
+            <div class="pd">Server checks Referer to grant access. Trivially spoofable from any client.</div>
+          </div>
+          <div class="card">
+            <div class="field-row"><span class="field-label">Referer</span><input class="field-input" id="ref-hdr" value="https://vulnapp.lab/dashboard"/></div>
+            <div class="field-row"><span class="field-label">Target</span><input class="field-input" id="ref-target" value="/internal/reports/1001"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doReferer()">SEND</button>
+              <button class="btn btn-x" onclick="setV('ref-hdr','https://vulnapp.lab/admin');doReferer()">Spoof /admin</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-ref">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-graphql">
+          <div class="ph">
+            <div class="badge b3">#14 LEVEL 3 — ADVANCED</div>
+            <div class="pt">GraphQL IDOR — resolver no auth</div>
+            <div class="pd">GraphQL resolver accepts any user(id:) without checking session ownership.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">// GRAPHQL QUERY</div>
+            <textarea class="field-input" id="gql-query" rows="6" style="width:100%">query {
+  user(id: 1001) {
+    id
+    email
+    creditCard
+    ssn
+  }
+}</textarea>
+            <div class="field-row" style="margin-top:8px">
+              <button class="btn btn-p" onclick="doGraphQL()">EXECUTE</button>
+              <button class="btn btn-x" onclick="document.getElementById('gql-query').value='query {\n  user(id: 1003) {\n    id\n    email\n    creditCard\n    ssn\n  }\n}';doGraphQL()">Query user 1003</button>
+            </div>
+          </div>
+          <div class="resp-label">graphql response</div>
+          <div class="resp-box" id="resp-gql">Click EXECUTE to test...</div>
+        </div>
+
+        <div class="panel" id="panel-websocket">
+          <div class="ph">
+            <div class="badge b3">#15 LEVEL 3 — ADVANCED</div>
+            <div class="pt">WebSocket IDOR — target_user in message</div>
+            <div class="pd">WS message payload contains target_user. Server forwards without authorization check.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">// WEBSOCKET MESSAGE</div>
+            <textarea class="field-input" id="ws-msg" rows="5" style="width:100%">{
+  "action": "get_messages",
+  "target_user": 1001,
+  "channel": "private"
+}</textarea>
+            <div class="field-row" style="margin-top:8px">
+              <button class="btn btn-p" onclick="doWebSocket()">SEND WS</button>
+              <button class="btn btn-x" onclick="document.getElementById('ws-msg').value='{\\n  \"action\": \"get_messages\",\\n  \"target_user\": 1002,\\n  \"channel\": \"private\"\\n }';doWebSocket()">Target 1002</button>
+            </div>
+          </div>
+          <div class="resp-label">websocket response</div>
+          <div class="resp-box" id="resp-ws">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-uuid">
+          <div class="ph">
+            <div class="badge b4">#16 LEVEL 4 — EXPERT</div>
+            <div class="pt">UUID/GUID IDOR — predictable or leaked</div>
+            <div class="pd">UUIDs look random but v1 (time-based) UUIDs are guessable. Sequential suffix exposed.</div>
+          </div>
+          <div class="card">
+            <div class="field-row"><span class="field-label">UUID</span><input class="field-input" id="uuid-val" value="550e8400-e29b-41d4-a716-446655440001" oninput="setURL('https://vulnapp.lab/docs/'+this.value)"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doUUID()">SEND</button>
+              <button class="btn btn-x" onclick="setV('uuid-val','550e8400-e29b-41d4-a716-446655440002');doUUID()">Next UUID</button>
+              <button class="btn btn-x" onclick="setV('uuid-val','550e8400-e29b-41d4-a716-446655440099');doUUID()">UUID-0099</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-uuid">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-filenames">
+          <div class="ph">
+            <div class="badge b4">#17 LEVEL 4 — EXPERT</div>
+            <div class="pt">Filename IDOR — /files/user1001_report.pdf</div>
+            <div class="pd">Files named with user IDs. Guess the filename, access any user's data.</div>
+          </div>
+          <div class="card">
+            <div class="field-row"><span class="field-label">FILENAME</span><input class="field-input" id="fn-val" value="user1001_report.pdf" oninput="setURL('https://vulnapp.lab/files/'+this.value)"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doFilename()">DOWNLOAD</button>
+              <button class="btn btn-x" onclick="setV('fn-val','user1002_report.pdf');doFilename()">user1002 file</button>
+              <button class="btn btn-x" onclick="setV('fn-val','admin_keys.pdf');doFilename()">admin_keys.pdf</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-fn">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-api-enum">
+          <div class="ph">
+            <div class="badge b4">#18 LEVEL 4 — EXPERT</div>
+            <div class="pt">API Endpoint Enumeration</div>
+            <div class="pd">Enumerate order IDs sequentially. No rate limiting or cross-user access control.</div>
+          </div>
+          <div class="card">
+            <div class="field-row"><span class="field-label">ORDER ID</span><input class="field-input" id="enum-id" value="1001" type="number" oninput="setURL('https://vulnapp.lab/api/v1/orders/'+this.value)"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doAPIEnum()">SEND</button>
+              <button class="btn btn-x" id="enum-btn" onclick="startEnum()">ENUMERATE 1000-1010</button>
+            </div>
+          </div>
+          <div class="resp-label">response / enumeration log</div>
+          <div class="resp-box" id="resp-enum">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-bulk-ops">
+          <div class="ph">
+            <div class="badge b4">#19 LEVEL 4 — EXPERT</div>
+            <div class="pt">Bulk Operations IDOR — inject IDs in array</div>
+            <div class="pd">Bulk API processes all IDs. Attacker injects other users' IDs into the array.</div>
+          </div>
+          <div class="card">
+            <textarea class="field-input" id="bulk-body" rows="6" style="width:100%">{
+  "user_ids": [1001],
+  "action": "delete_records"
+}</textarea>
+            <div class="field-row" style="margin-top:8px">
+              <button class="btn btn-p" onclick="doBulk()">SEND</button>
+              <button class="btn btn-x" onclick="document.getElementById('bulk-body').value='{\\n  \"user_ids\": [1001, 1002, 1003, 1004, 1005],\\n  \"action\": \"delete_records\"\\n}';doBulk()">Inject IDs</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-bulk">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-nested-json">
+          <div class="ph">
+            <div class="badge b4">#20 LEVEL 4 — EXPERT</div>
+            <div class="pt">Nested JSON IDOR — {"order": {"user_id": 123}}</div>
+            <div class="pd">user_id buried inside nested structure. WAFs and shallow checks often miss it.</div>
+          </div>
+          <div class="card">
+            <textarea class="field-input" id="nested-body" rows="8" style="width:100%">{
+  "order": {
+    "id": "ORD-001",
+    "user_id": 1001,
+    "status": "pending"
+  }
+}</textarea>
+            <div class="field-row" style="margin-top:8px">
+              <button class="btn btn-p" onclick="doNested()">SEND</button>
+              <button class="btn btn-x" onclick="document.getElementById('nested-body').value='{\\n  \"order\": {\\n    \"id\": \"ORD-001\",\\n    \"user_id\": 1002,\\n    \"status\": \"shipped\"\\n  }\\n}';doNested()">Change nested ID</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-nested">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-array-params">
+          <div class="ph">
+            <div class="badge b4">#21 LEVEL 4 — EXPERT</div>
+            <div class="pt">Array Parameter IDOR — ?user_id[]=1&amp;user_id[]=2</div>
+            <div class="pd">Server iterates array without per-element ownership check.</div>
+          </div>
+          <div class="card">
+            <div class="field-row"><span class="field-label">user_id[]</span><input class="field-input" id="arr-ids" value="1001" placeholder="comma separated"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doArray()">SEND</button>
+              <button class="btn btn-x" onclick="setV('arr-ids','1001,1002,1003,1004,1005');doArray()">Inject extra IDs</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-arr">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-admin-panel">
+          <div class="ph">
+            <div class="badge b4">#22 LEVEL 4 — EXPERT</div>
+            <div class="pt">Admin Panel IDOR — /admin/users/{id}</div>
+            <div class="pd">Checks isLoggedIn() but not isAdmin(). Any authenticated user reaches admin pages.</div>
+          </div>
+          <div class="card">
+            <div class="field-row"><span class="field-label">PATH</span><span style="color:var(--text3);font-size:11px">/admin/users/</span><input class="field-input" id="adm-id" value="1001" style="width:80px;flex:none" oninput="setURL('https://vulnapp.lab/admin/users/'+this.value)"/></div>
+            <div class="field-row"><span class="field-label">SESSION</span><input class="field-input" value="role: user (not admin)" readonly style="color:var(--c4)"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doAdmin()">ACCESS</button>
+              <button class="btn btn-x" onclick="setV('adm-id','0');doAdmin()">ID: 0 trick</button>
+              <button class="btn btn-x" onclick="setV('adm-id','9999');doAdmin()">ID: 9999</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-adm">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-api-keys">
+          <div class="ph">
+            <div class="badge b4">#23 LEVEL 4 — EXPERT</div>
+            <div class="pt">API Key IDOR — /api/keys/{id}</div>
+            <div class="pd">API key IDs are sequential. Retrieve or delete any user's production API key.</div>
+          </div>
+          <div class="card">
+            <div class="field-row"><span class="field-label">KEY ID</span><input class="field-input" id="apikey-id" value="201" oninput="setURL('https://vulnapp.lab/api/keys/'+this.value)"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doAPIKey()">RETRIEVE</button>
+              <button class="btn btn-x" onclick="setV('apikey-id','202');doAPIKey()">Key 202</button>
+              <button class="btn btn-x" onclick="setV('apikey-id','100');doAPIKey()">Key 100</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-apikey">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-password-reset">
+          <div class="ph">
+            <div class="badge b4">#24 LEVEL 4 — EXPERT</div>
+            <div class="pt">Predictable Reset Token — MD5(uid+timestamp)</div>
+            <div class="pd">Reset token derived from user_id + timestamp. Brute-forceable for any account.</div>
+          </div>
+          <div class="card">
+            <div class="field-row"><span class="field-label">USER ID</span><input class="field-input" id="rst-uid" value="1001"/></div>
+            <div class="field-row"><span class="field-label">TIMESTAMP</span><input class="field-input" id="rst-ts" value="1714000000"/></div>
+            <div class="field-row"><span class="field-label">TOKEN</span><input class="field-input" id="rst-tok" value="" readonly style="color:var(--c5)" placeholder="auto-generated"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doResetToken()">GENERATE + TEST</button>
+              <button class="btn btn-x" onclick="setV('rst-uid','1002');doResetToken()">Target 1002</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-rst">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-invoices">
+          <div class="ph">
+            <div class="badge b4">#25 LEVEL 4 — EXPERT</div>
+            <div class="pt">Sequential Invoice URLs — /invoice/INV-0042.pdf</div>
+            <div class="pd">Sequential numbering exposes every company's financial records.</div>
+          </div>
+          <div class="card">
+            <div class="field-row"><span class="field-label">INVOICE #</span><input class="field-input" id="inv-num" value="0042" oninput="setURL('https://vulnapp.lab/invoice/INV-'+this.value+'.pdf')"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doInvoice()">FETCH</button>
+              <button class="btn btn-x" onclick="setV('inv-num','0001');doInvoice()">INV-0001</button>
+              <button class="btn btn-x" onclick="setV('inv-num','9999');doInvoice()">INV-9999</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-inv">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-messages">
+          <div class="ph">
+            <div class="badge b4">#26 LEVEL 4 — EXPERT</div>
+            <div class="pt">Chat Message IDOR — /messages/{id}</div>
+            <div class="pd">Sequential message IDs. Read anyone's private conversations.</div>
+          </div>
+          <div class="card">
+            <div class="field-row"><span class="field-label">MESSAGE ID</span><input class="field-input" id="msg-id" value="5001" oninput="setURL('https://vulnapp.lab/messages/'+this.value)"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doMessage()">READ</button>
+              <button class="btn btn-x" onclick="setV('msg-id','5002');doMessage()">Msg 5002</button>
+              <button class="btn btn-x" onclick="setV('msg-id','5003');doMessage()">Msg 5003 (wire)</button>
+              <button class="btn btn-x" onclick="setV('msg-id','5010');doMessage()">Msg 5010 (creds)</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-msg">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-roles">
+          <div class="ph">
+            <div class="badge b4">#27 LEVEL 4 — EXPERT</div>
+            <div class="pt">Role/Subscription Escalation — role_id=1 → 3</div>
+            <div class="pd">Change role_id to jump from Free to Enterprise without paying.</div>
+          </div>
+          <div class="card">
+            <div class="g2" style="margin-bottom:10px">
+              <div style="padding:10px;background:#1D9E7511;border:1px solid #1D9E7533;border-radius:6px;text-align:center">
+                <div style="font-size:9px;color:#1D9E75">role_id=1</div>
+                <div style="font-size:12px;font-weight:700;color:#5DCAA5">Free Plan</div>
+                <div style="font-size:10px;color:#1D9E75;margin-top:3px">5 req/day</div>
+              </div>
+              <div style="padding:10px;background:#E24B4A11;border:1px solid #E24B4A33;border-radius:6px;text-align:center">
+                <div style="font-size:9px;color:#E24B4A">role_id=3</div>
+                <div style="font-size:12px;font-weight:700;color:#F09595">Enterprise</div>
+                <div style="font-size:10px;color:#E24B4A;margin-top:3px">Unlimited</div>
+              </div>
+            </div>
+            <div class="field-row"><span class="field-label">USER ID</span><input class="field-input" id="role-uid" value="1001"/></div>
+            <div class="field-row"><span class="field-label">ROLE ID</span><input class="field-input" id="role-id" value="1"/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doRole()">SEND</button>
+              <button class="btn btn-x" onclick="setV('role-id','3');doRole()">Escalate to 3</button>
+              <button class="btn btn-x" onclick="setV('role-id','4');doRole()">role_id=4 (god)</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-role">Click SEND to test...</div>
+        </div>
+
+        <div class="panel" id="panel-hashed-ids">
+          <div class="ph">
+            <div class="badge b4">#28 LEVEL 4 — EXPERT</div>
+            <div class="pt">Hashed ID IDOR — MD5(user_id)</div>
+            <div class="pd">MD5 hash of a small integer is reversible in milliseconds via rainbow tables.</div>
+          </div>
+          <div class="card">
+            <div class="field-row"><span class="field-label">USER ID</span><input class="field-input" id="hash-raw" value="1001" oninput="updateHashedID()"/></div>
+            <div class="field-row"><span class="field-label">HASH</span><input class="field-input" id="hash-val" value="" readonly style="color:var(--c5)" placeholder="computing..."/></div>
+            <div class="field-row">
+              <button class="btn btn-p" onclick="doHashedID()">SEND</button>
+              <button class="btn btn-x" onclick="setV('hash-raw','1002');updateHashedID();doHashedID()">Hash 1002</button>
+              <button class="btn btn-x" onclick="setV('hash-raw','1');updateHashedID();doHashedID()">Hash 1 (root)</button>
+            </div>
+          </div>
+          <div class="resp-label">server response</div>
+          <div class="resp-box" id="resp-hash">Click SEND to test...</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
